@@ -1,0 +1,35 @@
+# Build artefacts
+/bin/
+/dist/
+*.exe
+*.test
+*.out
+*.prof
+coverage.out
+coverage.html
+
+# Go workspace / tooling
+/vendor/
+go.work
+go.work.sum
+
+# Editor & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local env / secrets (never commit)
+.env
+.env.*
+!.env.example
+
+# Local PEMs captured from `openssl s_client` / test runs
+# (anything under testdata/ is tracked; only ad-hoc local captures are ignored)
+*.pem.local
+/leaf.pem
+/chain.pem
+/intermediates.pem
+/bundle.pem

@@ -1,0 +1,52 @@
+name: AIA chain check
+description: Verify that a TLS host sends its full intermediate chain (SC104 readiness).
+author: TigerTrust
+
+branding:
+  icon: shield
+  color: orange
+
+inputs:
+  host:
+    description: Hostname[:port] to check. Default port 443.
+    required: true
+  fail_on_missing_aia:
+    description: Exit 1 if the leaf has no AIA caIssuers URI.
+    required: false
+    default: 'false'
+  fail_on_incomplete_chain:
+    description: Exit 1 if the presented chain does not verify.
+    required: false
+    default: 'true'
+  fetch_aia:
+    description: Attempt to fetch AIA caIssuers and retry verification. Off by default (browsers may not).
+    required: false
+    default: 'false'
+  timeout:
+    description: Dial / fetch timeout (Go duration, e.g. 10s).
+    required: false
+    default: '10s'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Install aia-chain-check
+      shell: bash
+      run: |
+        ref="${{ github.action_ref }}"
+        if [ -z "$ref" ]; then ref="main"; fi
+        go install "github.com/tigertrust/aia-chain-check/cmd/aia-chain-check@${ref}"
+
+    - name: Run aia-chain-check
+      shell: bash
+      run: |
+        args=(--host "${{ inputs.host }}" --timeout "${{ inputs.timeout }}")
+        if [ "${{ inputs.fail_on_missing_aia }}" = "true" ]; then args+=(--fail-on-missing-aia); fi
+        if [ "${{ inputs.fail_on_incomplete_chain }}" = "false" ]; then args+=(--fail-on-incomplete-chain=false); fi
+        if [ "${{ inputs.fetch_aia }}" = "true" ]; then args+=(--fetch-aia); fi
+        "$(go env GOPATH)/bin/aia-chain-check" "${args[@]}"
